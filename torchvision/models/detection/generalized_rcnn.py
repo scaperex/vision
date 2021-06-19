@@ -34,10 +34,10 @@ class GeneralizedRCNN(nn.Module):
     @torch.jit.unused
     def eager_outputs(self, losses, detections):
         # type: (Dict[str, Tensor], List[Dict[str, Tensor]]) -> Union[Dict[str, Tensor], List[Dict[str, Tensor]]]
-        if self.training:
-            return losses
+#         if self.training:
+#             return losses
 
-        return detections
+        return detections, losses
 
     def forward(self, images, targets=None):
         # type: (List[Tensor], Optional[List[Dict[str, Tensor]]]) -> Tuple[Dict[str, Tensor], List[Dict[str, Tensor]]]
