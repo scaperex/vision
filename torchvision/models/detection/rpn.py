@@ -366,4 +366,14 @@ class RegionProposalNetwork(torch.nn.Module):
                 "loss_objectness": loss_objectness,
                 "loss_rpn_box_reg": loss_rpn_box_reg,
             }
+        else:
+            if targets is not None:
+                labels, matched_gt_boxes = self.assign_targets_to_anchors(anchors, targets)
+                regression_targets = self.box_coder.encode(matched_gt_boxes, anchors)
+                loss_objectness, loss_rpn_box_reg = self.compute_loss(
+                    objectness, pred_bbox_deltas, labels, regression_targets)
+                losses = {
+                    "loss_objectness": loss_objectness,
+                    "loss_rpn_box_reg": loss_rpn_box_reg,
+                }
         return boxes, losses
