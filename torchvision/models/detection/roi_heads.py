@@ -742,7 +742,8 @@ class RoIHeads(nn.Module):
                 if self.has_keypoint():
                     assert t["keypoints"].dtype == torch.float32, 'target keypoints must of float type'
 
-        if self.training:
+#         if self.training:
+        if targets is not None:
             proposals, matched_idxs, labels, regression_targets = self.select_training_samples(proposals, targets)
         else:
             labels = None
@@ -755,7 +756,8 @@ class RoIHeads(nn.Module):
 
         result: List[Dict[str, torch.Tensor]] = []
         losses = {}
-        if self.training:
+#         if self.training:
+        if targets is not None:
             assert labels is not None and regression_targets is not None
             loss_classifier, loss_box_reg = fastrcnn_loss(
                 class_logits, box_regression, labels, regression_targets)
@@ -763,18 +765,17 @@ class RoIHeads(nn.Module):
                 "loss_classifier": loss_classifier,
                 "loss_box_reg": loss_box_reg
             }
-        else:
-            boxes, scores, labels = self.postprocess_detections(class_logits, box_regression, proposals, image_shapes)
-            num_images = len(boxes)
-            for i in range(num_images):
-                result.append(
-                    {
-                        "boxes": boxes[i],
-                        "labels": labels[i],
-                        "scores": scores[i],
-                    }
-                )
-
+#         else:
+        boxes, scores, labels = self.postprocess_detections(class_logits, box_regression, proposals, image_shapes)
+        num_images = len(boxes)
+        for i in range(num_images):
+            result.append(
+                {
+                    "boxes": boxes[i],
+                    "labels": labels[i],
+                    "scores": scores[i],
+                }
+            )
         if self.has_mask():
             mask_proposals = [p["boxes"] for p in result]
             if self.training:
@@ -820,7 +821,8 @@ class RoIHeads(nn.Module):
             losses.update(loss_mask)
 
         # keep none checks in if conditional so torchscript will conditionally
-        # compile each branch
+        # compile each branch 
+        # we do not enter this code - loss_keypoint not in dict
         if self.keypoint_roi_pool is not None and self.keypoint_head is not None \
                 and self.keypoint_predictor is not None:
             keypoint_proposals = [p["boxes"] for p in result]
